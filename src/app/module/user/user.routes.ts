@@ -14,4 +14,9 @@ router.post(
     },
 )
 
+// create doctor
+
+// create admin
+
+
 export const userRoutes = router
