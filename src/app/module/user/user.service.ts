@@ -68,6 +68,8 @@ const createDoctor = async (req: Request): Promise<Doctor> => {
 
     const file = req.file;
 
+    // console.log({ file });
+
     if (file) {
         const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
         req.body.doctor.profilePhoto = uploadToCloudinary?.secure_url
@@ -88,6 +90,8 @@ const createDoctor = async (req: Request): Promise<Doctor> => {
         const createdDoctorData = await transactionClient.doctor.create({
             data: req.body.doctor
         });
+
+        // console.log(req.body.doctor);
 
         return createdDoctorData;
     });

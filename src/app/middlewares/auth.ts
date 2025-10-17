@@ -5,7 +5,8 @@ const auth = (...roles: string[]) => {
     return async (req: Request & { user?: any }, res: Response, next: NextFunction) => {
         try {
             // console.log(req?.headers.authorization);
-            const token = req?.headers.authorization;
+            // const token = req?.headers.authorization;
+            const token = req?.cookies.accessToken;
 
             // console.log({ token });
 

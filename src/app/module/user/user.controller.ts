@@ -40,24 +40,19 @@ const createDoctor = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
-    // console.log('asdfasdf');
     const filters = pick(req.query, userFilterableFields) // searching , filtering
-
-    console.log('filters==>', filters);
     const options = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]) // pagination and sorting
 
-    console.log({ options });
-
-    // const result = await UserService.getAllFromDB(filters, options);
+    const result = await UserService.getAllFromDB(filters, options);
 
     sendResponse(res, {
         statusCode: 200,
         success: true,
         message: "User retrieve successfully!",
         // meta: 'result.meta',
-        data: ' result.data'
-        // meta: result.meta,
-        // data: result.data
+        // data: ' result.data'
+        meta: result.meta,
+        data: result.data
     })
 })
 
