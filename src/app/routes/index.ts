@@ -2,7 +2,7 @@ import express from 'express';
 import { userRoutes } from '../module/user/user.routes';
 import { authRoutes } from '../module/auth/auth.routes';
 import { scheduleRoutes } from '../module/schedule/schedule.routes';
-import { doctorScheduleRoutes } from '../middlewares/doctorSchedule/doctorSchedule.routes';
+import { doctorScheduleRoutes } from '../module/doctorSchedule/doctorSchedule.routes';
 
 
 const router = express.Router();

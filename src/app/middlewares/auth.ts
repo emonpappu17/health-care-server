@@ -6,7 +6,7 @@ const auth = (...roles: string[]) => {
         try {
             // console.log(req?.headers.authorization);
             // const token = req?.headers.authorization;
-            const token = req?.cookies.accessToken;
+            const token = req?.headers.authorization || req?.cookies.accessToken;
 
             // console.log({ token });
 
