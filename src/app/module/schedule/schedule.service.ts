@@ -105,7 +105,7 @@ const schedulesForDoctor = async (user: IJWTPayload, filters: any, options: IOpt
         }
     })
 
-    console.log(doctorSchedules);
+    // console.log(doctorSchedules);
 
     const doctorScheduleIds = doctorSchedules.map(schedule => schedule.scheduleId);
 
