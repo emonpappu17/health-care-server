@@ -15,8 +15,9 @@ const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         statusCode: 200,
         success: true,
-        message: "Doctor fetched successfullly",
-        data: result
+        message: "Doctor fetched successfully",
+        meta: result.meta,
+        data: result.data
     })
 })
 
