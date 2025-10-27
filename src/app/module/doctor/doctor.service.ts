@@ -3,6 +3,10 @@ import { IOptions, paginationHelper } from "../../helper/paginationHelper"
 import { doctorSearchableFields } from "./doctor.constant";
 import { prisma } from "../../shared/prisma";
 import { IDoctorUpdateInput } from "./doctor.interface";
+import { fa, th, tr } from "zod/v4/locales";
+import ApiError from "../../errors/ApiError";
+import httpStatus from "http-status"
+import { openai } from "../../helper/open-router";
 
 const getAllFromDB = async (filters: any, options: IOptions) => {
     const { page, limit, skip, sortBy, sortOrder } = paginationHelper.calculatePagination(options);
@@ -138,7 +142,45 @@ const updateIntoDB = async (id: string, payload: Partial<IDoctorUpdateInput>) =>
 
 }
 
+const getAISuggestions = async (payload: { symptoms: string }) => {
+    console.log(payload);
+    if (!(payload && payload.symptoms)) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Symptom is required!")
+    };
+
+    const doctors = await prisma.doctor.findMany({
+        where: { isDeleted: false },
+        include: {
+            doctorSpecialties: {
+                include: {
+                    specialities: true
+                }
+            }
+        }
+    })
+
+    console.log({ doctors });
+
+    const completion = await openai.chat.completions.create({
+        model: 'z-ai/glm-4.5-air:free',
+        messages: [
+            {
+                role: "system",
+                content:
+                    "You are a medical AI assistant. Based on symptoms, suggest which types of doctors are most appropriate.",
+            },
+            {
+                role: 'user',
+                content: `Patient symptoms: ${payload.symptoms}. Suggest relevant doctor specialties.`,
+            },
+        ],
+    });
+    console.log(completion.choices[0].message);
+    return doctors
+}
+
 export const DoctorService = {
     getAllFromDB,
-    updateIntoDB
+    updateIntoDB,
+    getAISuggestions
 }
