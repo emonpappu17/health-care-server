@@ -143,6 +143,28 @@ const updateIntoDB = async (id: string, payload: Partial<IDoctorUpdateInput>) =>
 
 }
 
+const getByIdFromDB = async (id: string): Promise<Doctor | null> => {
+    const result = await prisma.doctor.findUnique({
+        where: {
+            id,
+            isDeleted: false,
+        },
+        include: {
+            doctorSpecialties: {
+                include: {
+                    specialities: true,
+                },
+            },
+            doctorSchedules: {
+                include: {
+                    schedule: true
+                }
+            }
+        },
+    });
+    return result;
+};
+
 const getAISuggestions = async (payload: { symptoms: string }) => {
     if (!(payload && payload.symptoms)) {
         throw new ApiError(httpStatus.BAD_REQUEST, "symptoms is required!")
@@ -196,5 +218,6 @@ Return your response in JSON format with full individual doctor data.
 export const DoctorService = {
     getAllFromDB,
     updateIntoDB,
-    getAISuggestions
+    getAISuggestions,
+    getByIdFromDB
 }
