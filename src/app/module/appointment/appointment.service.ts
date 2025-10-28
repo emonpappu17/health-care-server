@@ -2,6 +2,7 @@ import { fa } from "zod/v4/locales";
 import { prisma } from "../../shared/prisma";
 import { IJWTPayload } from "../../types/common";
 import { v4 as uuidv4 } from 'uuid';
+import { stripe } from "../../helper/stripe";
 
 const createAppointment = async (user: IJWTPayload, payload: { doctorId: string, scheduleId: string }) => {
     const patientData = await prisma.patient.findUniqueOrThrow({
@@ -58,6 +59,30 @@ const createAppointment = async (user: IJWTPayload, payload: { doctorId: string,
                 transactionId
             }
         })
+
+        // Step 1: Create Stripe Checkout session
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ["card"],
+            mode: "payment",
+            customer_email: user.email,
+            line_items: [
+                {
+                    price_data: {
+                        currency: "usd",
+                        product_data: {
+                            name: `Appointment with ${doctorData.name}`,
+                            // description: `Appointment with Doctor ID: ${doctorId}`,
+                        },
+                        unit_amount: doctorData.appointmentFee * 100, // cents
+                    },
+                    quantity: 1,
+                },
+            ],
+            success_url: `https://www.facebook.com`,
+            cancel_url: `https://github.com`,
+        });
+
+        console.log({ session });
 
         return appointmentData
     })
