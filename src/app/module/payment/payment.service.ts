@@ -6,17 +6,20 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
         case "checkout.session.completed": {
             const session = event.data.object as Stripe.Checkout.Session;
 
-            const payment = await prisma.payment.updateMany({
-                where: { stripeSession: session.id },
-                data: { status: "paid" },
-            });
+            // const payment = await prisma.payment.updateMany({
+            //     where: { stripeSession: session.id },
+            //     data: { status: "paid" },
+            // });
 
-            await prisma.appointment.updateMany({
-                where: { payment: { stripeSession: session.id } },
-                data: { status: "confirmed" },
-            });
+            // await prisma.appointment.updateMany({
+            //     where: { payment: { stripeSession: session.id } },
+            //     data: { status: "confirmed" },
+            // });
+
 
             console.log("✅ Payment completed, appointment confirmed.");
+            console.log({ session });
+
             break;
         }
 
@@ -24,10 +27,10 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
         case "payment_intent.payment_failed": {
             const session = event.data.object as any;
 
-            await prisma.payment.updateMany({
-                where: { stripeSession: session.id },
-                data: { status: "failed" },
-            });
+            // await prisma.payment.updateMany({
+            //     where: { stripeSession: session.id },
+            //     data: { status: "failed" },
+            // });
 
             console.log("⚠️ Payment failed or expired.");
             break;
