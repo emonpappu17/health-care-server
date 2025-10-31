@@ -13,7 +13,7 @@ router.get(
 
 router.post(
     "/",
-    auth(UserRole.ADMIN),
+    // auth(UserRole.ADMIN),
     ScheduleController.insertIntoDB
 )
 

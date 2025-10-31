@@ -6,7 +6,7 @@ const router = Router();
 router.get(
     "/",
     DoctorController.getAllFromDB
-)
+);
 
 router.get(
     '/:id',

@@ -85,7 +85,7 @@ const getAllFromDB = async (filters: any, options: IOptions) => {
         },
         data: result
     }
-}
+};
 
 const updateIntoDB = async (id: string, payload: Partial<IDoctorUpdateInput>) => {
     const doctorInfo = await prisma.doctor.findUniqueOrThrow({
@@ -95,6 +95,7 @@ const updateIntoDB = async (id: string, payload: Partial<IDoctorUpdateInput>) =>
     })
 
     const { specialties, ...doctorData } = payload;
+    // console.log(payload);
 
     return await prisma.$transaction(async (tnx) => {
         if (specialties && specialties.length > 0) {
@@ -110,6 +111,8 @@ const updateIntoDB = async (id: string, payload: Partial<IDoctorUpdateInput>) =>
             }
 
             const createSpecialtyIds = specialties.filter((specialty) => !specialty.isDeleted);
+
+            console.log({ createSpecialtyIds });
 
             for (const specialty of createSpecialtyIds) {
                 await tnx.doctorSpecialties.create({
@@ -139,9 +142,7 @@ const updateIntoDB = async (id: string, payload: Partial<IDoctorUpdateInput>) =>
 
         return updatedData
     })
-
-
-}
+};
 
 const getByIdFromDB = async (id: string): Promise<Doctor | null> => {
     const result = await prisma.doctor.findUnique({
@@ -213,7 +214,7 @@ Return your response in JSON format with full individual doctor data.
 
     const result = await extractJsonFromMessage(completion.choices[0].message)
     return result;
-}
+};
 
 export const DoctorService = {
     getAllFromDB,
