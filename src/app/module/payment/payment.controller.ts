@@ -4,12 +4,14 @@ import sendResponse from "../../shared/sendResponse";
 import { PaymentService } from "./payment.service";
 import Stripe from "stripe";
 import { stripe } from "../../helper/stripe";
+import config from "../../../config";
 
 const handleStripeWebhookEvent = catchAsync(async (req: Request, res: Response) => {
     // const user = req.user;
 
     const sig = req.headers["stripe-signature"];
-    const webhookSecret = "whsec_a2d33d441d56d2304d111c6da842e3dd4ed19e9217384503bea41368da49a7fe"
+    const webhookSecret = config.stripe_webhook_secret as string;
+    // const webhookSecret = "whsec_a2d33d441d56d2304d111c6da842e3dd4ed19e9217384503bea41368da49a7fe"
 
     if (!sig) {
         return res.status(400).send("Missing Stripe signature header");
