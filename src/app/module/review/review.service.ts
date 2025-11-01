@@ -5,13 +5,11 @@ import { prisma } from "../../shared/prisma";
 import { IJWTPayload } from "../../types/common";
 
 const insertIntoDB = async (user: IJWTPayload, payload: any) => {
-
     const patientData = await prisma.patient.findUniqueOrThrow({
         where: {
             email: user.email
         }
     });
-
 
     const appointmentData = await prisma.appointment.findUniqueOrThrow({
         where: {
@@ -20,8 +18,8 @@ const insertIntoDB = async (user: IJWTPayload, payload: any) => {
     });
 
     if (patientData.id !== appointmentData.patientId) {
-        throw new ApiError(httpStatus.BAD_REQUEST, "This is not your appointment")
-    };
+        throw new ApiError(httpStatus.BAD_REQUEST, "This is not your appointment!")
+    }
 
     return await prisma.$transaction(async (tnx) => {
         const result = await tnx.review.create({
@@ -35,13 +33,13 @@ const insertIntoDB = async (user: IJWTPayload, payload: any) => {
         });
 
         const avgRating = await tnx.review.aggregate({
-            where: {
-                doctorId: appointmentData.doctorId
-            },
             _avg: {
                 rating: true
+            },
+            where: {
+                doctorId: appointmentData.doctorId
             }
-        });
+        })
 
         await tnx.doctor.update({
             where: {
@@ -50,12 +48,11 @@ const insertIntoDB = async (user: IJWTPayload, payload: any) => {
             data: {
                 averageRating: avgRating._avg.rating as number
             }
-        });
+        })
 
         return result;
     })
 };
-
 
 const getAllFromDB = async (
     filters: any,
