@@ -4,6 +4,7 @@ import catchAsync from "../../shared/catchAsync";
 // import { UserService } from "./user.service";
 import sendResponse from "../../shared/sendResponse";
 import { AuthService } from "./auth.service";
+import httpStatus from "http-status";
 
 const login = catchAsync(async (req: Request, res: Response) => {
     const result = await AuthService.login(req.body);
@@ -34,6 +35,56 @@ const login = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const refreshToken = catchAsync(async (req: Request, res: Response) => {
+    const { refreshToken } = req.cookies;
+
+    const result = await AuthService.refreshToken(refreshToken);
+    res.cookie("accessToken", result.accessToken, {
+        secure: true,
+        httpOnly: true,
+        sameSite: "none",
+        maxAge: 1000 * 60 * 60,
+    });
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Access token generated successfully!",
+        data: {
+            message: "Access token generated successfully!",
+        },
+    });
+});
+
+const changePassword = catchAsync(
+    async (req: Request & { user?: any }, res: Response) => {
+        const user = req.user;
+
+        const result = await AuthService.changePassword(user, req.body);
+
+        sendResponse(res, {
+            statusCode: httpStatus.OK,
+            success: true,
+            message: "Password Changed successfully",
+            data: result,
+        });
+    }
+);
+
+const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+    await AuthService.forgotPassword(req.body);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Check your email!",
+        data: null,
+    });
+});
+
 export const AuthController = {
-    login
+    login,
+    refreshToken,
+    changePassword,
+    forgotPassword
 }

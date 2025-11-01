@@ -1,11 +1,13 @@
 import { UserStatus } from "@prisma/client";
 import { prisma } from "../../shared/prisma";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { Secret } from "jsonwebtoken";
 import { jwtHelper } from "../../helper/jwtHelper";
 import { email } from "zod";
 import ApiError from "../../errors/ApiError";
 import httpStatus from "http-status"
+import config from "../../../config";
+import emailSender from "./emailSender";
 
 
 const login = async (payload: { email: string, password: string }) => {
@@ -24,11 +26,11 @@ const login = async (payload: { email: string, password: string }) => {
 
     const accessToken = jwtHelper.generateToken({
         email: user.email, role: user.role
-    }, "abc", "1h");
+    }, config.jwt.access_token_secret, config.jwt.access_token_expires);
 
     const refreshToken = jwtHelper.generateToken({
         email: user.email, role: user.role
-    }, "abc", "90d");
+    }, config.jwt.refresh_token_secret, config.jwt.refresh_token_expires);
 
     return {
         accessToken,
@@ -37,6 +39,120 @@ const login = async (payload: { email: string, password: string }) => {
     }
 }
 
+
+const refreshToken = async (token: string) => {
+    let decodedData;
+    try {
+        decodedData = jwtHelper.verifyToken(token, config.jwt.refresh_token_secret as Secret);
+    }
+    catch (err) {
+        throw new Error("You are not authorized!")
+    }
+
+    const userData = await prisma.user.findUniqueOrThrow({
+        where: {
+            email: decodedData.email,
+            status: UserStatus.ACTIVE
+        }
+    });
+
+    const accessToken = jwtHelper.generateToken({
+        email: userData.email,
+        role: userData.role
+    },
+        config.jwt.access_token_secret as Secret,
+        config.jwt.access_token_expires as string
+    );
+
+    return {
+        accessToken,
+        needPasswordChange: userData.needPasswordChange
+    };
+
+};
+
+const changePassword = async (user: any, payload: any) => {
+    const userData = await prisma.user.findUniqueOrThrow({
+        where: {
+            email: user.email,
+            status: UserStatus.ACTIVE
+        }
+    });
+
+    const isCorrectPassword: boolean = await bcrypt.compare(payload.oldPassword, userData.password);
+
+    if (!isCorrectPassword) {
+        throw new Error("Password incorrect!")
+    }
+
+    const hashedPassword: string = await bcrypt.hash(payload.newPassword, Number(config.salt_round));
+
+    await prisma.user.update({
+        where: {
+            email: userData.email
+        },
+        data: {
+            password: hashedPassword,
+            needPasswordChange: false
+        }
+    })
+
+    return {
+        message: "Password changed successfully!"
+    }
+};
+
+const forgotPassword = async (payload: { email: string }) => {
+   
+    const userData = await prisma.user.findUniqueOrThrow({
+        where: {
+            email: payload.email,
+            status: UserStatus.ACTIVE
+        }
+    });
+
+    const resetPassToken = jwtHelper.generateToken(
+        { email: userData.email, role: userData.role },
+        config.jwt.reset_pass_token_secret as Secret,
+        config.jwt.reset_pass_token_expires as string
+    )
+
+    const resetPassLink = config.reset_pass_link + `?userId=${userData.id}&token=${resetPassToken}`
+
+    await emailSender(
+        userData.email,
+        // `
+        // <div>
+        //     <p>Dear User,</p>
+        //     <p>Your password reset link 
+        //         <a href=${resetPassLink}>
+        //             <button>
+        //                 Reset Password
+        //             </button>
+        //         </a>
+        //     </p>
+        // </div>
+        // `
+
+        `
+      <div style="font-family: sans-serif; line-height: 1.5;">
+        <p>Dear ${"User"},</p>
+        <p>Click the button below to reset your password:</p>
+        <a href="${resetPassLink}">
+          <button style="background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+            Reset Password
+          </button>
+        </a>
+        <p>If you did not request a password reset, please ignore this email.</p>
+      </div>
+    `,
+    )
+};
+
+
 export const AuthService = {
-    login
+    login,
+    refreshToken,
+    changePassword,
+    forgotPassword
 }

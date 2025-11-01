@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express"
 import { jwtHelper } from "../helper/jwtHelper";
 import ApiError from "../errors/ApiError";
 import httpStatus from "http-status"
+import config from "../../config";
 
 
 const auth = (...roles: string[]) => {
@@ -17,7 +18,7 @@ const auth = (...roles: string[]) => {
                 throw new ApiError(httpStatus.UNAUTHORIZED, "You are not authorized!")
             }
 
-            const verifyUser = jwtHelper.verifyToken(token, "abc");
+            const verifyUser = jwtHelper.verifyToken(token, config.jwt.access_token_secret);
 
             req.user = verifyUser;
 
