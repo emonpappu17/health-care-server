@@ -4,7 +4,7 @@ import { IJWTPayload } from "../../types/common";
 import { v4 as uuidv4 } from 'uuid';
 import { stripe } from "../../helper/stripe";
 import { IOptions, paginationHelper } from "../../helper/paginationHelper";
-import { AppointmentStatus, Prisma, UserRole } from "@prisma/client";
+import { AppointmentStatus, PaymentStatus, Prisma, UserRole } from "@prisma/client";
 import ApiError from "../../errors/ApiError";
 import HttpStatus from "http-status";
 
@@ -252,9 +252,59 @@ const getAllFromDB = async (
     };
 };
 
+const cancelUnpaidAppointments = async () => {
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000)
+
+    // console.log({ thirtyMinAgo });
+
+    const unPaidAppointments = await prisma.appointment.findMany({
+        where: {
+            createdAt: {
+                lte: thirtyMinAgo
+            },
+            paymentStatus: PaymentStatus.UNPAID
+        }
+    });
+
+    const appointmentIdsToCancel = unPaidAppointments.map(appointment => appointment.id);
+
+    await prisma.$transaction(async (tnx) => {
+        await tnx.payment.deleteMany({
+            where: {
+                appointmentId: {
+                    in: appointmentIdsToCancel
+                }
+            }
+        });
+
+        await tnx.appointment.deleteMany({
+            where: {
+                id: {
+                    in: appointmentIdsToCancel
+                }
+            }
+        });
+
+        for (const unPaidAppointment of unPaidAppointments) {
+            await tnx.doctorSchedules.update({
+                where: {
+                    doctorId_scheduleId: {
+                        doctorId: unPaidAppointment.doctorId,
+                        scheduleId: unPaidAppointment.scheduleId
+                    }
+                },
+                data: {
+                    isBooked: false
+                }
+            })
+        }
+    })
+}
+
 export const AppointmentService = {
     createAppointment,
     getMyAppointment,
     updateAppointmentStatus,
-    getAllFromDB
+    getAllFromDB,
+    cancelUnpaidAppointments
 };
