@@ -85,7 +85,6 @@ const getDoctorMetaData = async (user: IJWTPayload) => {
     }
 };
 
-
 const getPatientMetaData = async (user: IJWTPayload) => {
     const patientData = await prisma.patient.findUniqueOrThrow({
         where: {
@@ -131,8 +130,6 @@ const getPatientMetaData = async (user: IJWTPayload) => {
         formattedAppointmentStatusDistribution
     }
 }
-
-
 
 const getAdminMetaData = async () => {
     const patientCount = await prisma.patient.count();
