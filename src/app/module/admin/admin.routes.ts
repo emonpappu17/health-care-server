@@ -1,15 +1,43 @@
-import { Router } from "express";
-import auth from "../../middlewares/auth";
-import { UserRole } from "@prisma/client";
-import { AdminController } from "./admin.controller";
+import express, { NextFunction, Request, Response } from 'express';
+import { AdminController } from './admin.controller';
+// import validateRequest from '../../middlewares/validateRequest';
+// import { adminValidationSchemas } from './admin.validations';
+import auth from '../../middlewares/auth';
+import { UserRole } from '@prisma/client';
+import validateRequest from '../../middlewares/validateRequeset';
+import { adminValidationSchemas } from './admin.validations';
 
-const router = Router();
+const router = express.Router();
 
 router.get(
-    "/",
+    '/',
     auth(UserRole.ADMIN),
     AdminController.getAllFromDB
-)
+);
 
+router.get(
+    '/:id',
+    auth(UserRole.ADMIN),
+    AdminController.getByIdFromDB
+);
+
+router.patch(
+    '/:id',
+    auth(UserRole.ADMIN),
+    validateRequest(adminValidationSchemas.update),
+    AdminController.updateIntoDB
+);
+
+router.delete(
+    '/:id',
+    auth(UserRole.ADMIN),
+    AdminController.deleteFromDB
+);
+
+router.delete(
+    '/soft/:id',
+    auth(UserRole.ADMIN),
+    AdminController.softDeleteFromDB
+);
 
 export const AdminRoutes = router;
