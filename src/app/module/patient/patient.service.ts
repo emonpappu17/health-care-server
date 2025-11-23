@@ -1,6 +1,6 @@
 import { Patient, Prisma, UserStatus } from "@prisma/client";
 import { IJWTPayload } from "../../types/common";
-import { IPatientFilterRequest } from "./patient.interface";
+import { IPatientFilterRequest, IPatientUpdate } from "./patient.interface";
 import { IOptions, paginationHelper } from "../../helper/paginationHelper";
 import { patientSearchableFields } from "./patient.constant";
 import { prisma } from "../../shared/prisma";
@@ -187,60 +187,61 @@ const softDelete = async (id: string): Promise<Patient | null> => {
 };
 
 
+const updateIntoDB = async (id: string, payload: Partial<IPatientUpdate>): Promise<Patient | null> => {
 
-const updateIntoDB = async (user: IJWTPayload, payload: any) => {
-    const { medicalReport, patientHealthData, ...patientData } = payload;
+    const { patientHealthData, medicalReport, ...patientData } = payload;
 
     const patientInfo = await prisma.patient.findUniqueOrThrow({
         where: {
-            email: user.email,
+            id,
             isDeleted: false
         }
     });
 
-    return await prisma.$transaction(async (tnx) => {
-        await tnx.patient.update({
+    await prisma.$transaction(async (transactionClient) => {
+        //update patient data
+        await transactionClient.patient.update({
             where: {
-                id: patientInfo.id
+                id
             },
-            data: patientData
-        })
-
-        if (patientHealthData) {
-            await tnx.patientHealthData.upsert({
-                where: {
-                    patientId: patientInfo.id
-                },
-                update: patientHealthData,
-                create: {
-                    ...patientHealthData,
-                    patientId: patientInfo.id
-                }
-            })
-        }
-
-        if (medicalReport) {
-            await tnx.medicalReport.create({
-                data: {
-                    ...medicalReport,
-                    patientId: patientInfo.id
-                }
-            })
-        }
-
-        const result = await tnx.patient.findUnique({
-            where: {
-                id: patientInfo.id
-            },
+            data: patientData,
             include: {
                 patientHealthData: true,
                 medicalReports: true
             }
-        })
-        return result;
-    })
-}
+        });
 
+        // create or update patient health data
+        if (patientHealthData) {
+            await transactionClient.patientHealthData.upsert({
+                where: {
+                    patientId: patientInfo.id
+                },
+                update: patientHealthData,
+                create: { ...patientHealthData, patientId: patientInfo.id }
+            });
+        };
+
+        if (medicalReport) {
+            await transactionClient.medicalReport.create({
+                data: { ...medicalReport, patientId: patientInfo.id }
+            })
+        }
+    })
+
+
+    const responseData = await prisma.patient.findUnique({
+        where: {
+            id: patientInfo.id
+        },
+        include: {
+            patientHealthData: true,
+            medicalReports: true
+        }
+    })
+    return responseData;
+
+};
 export const PatientService = {
     getAllFromDB,
     getByIdFromDB,

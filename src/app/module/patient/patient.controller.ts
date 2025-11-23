@@ -47,9 +47,10 @@ const softDelete = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const updateIntoDB = catchAsync(async (req: Request & { user?: IJWTPayload }, res: Response) => {
-    const user = req.user;
-    const result = await PatientService.updateIntoDB(user as IJWTPayload, req.body);
+const updateIntoDB = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await PatientService.updateIntoDB(id, req.body);
+
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
