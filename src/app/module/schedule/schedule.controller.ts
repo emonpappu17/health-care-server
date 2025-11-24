@@ -32,6 +32,7 @@ const schedulesForDoctor = catchAsync(async (req: Request & { user?: IJWTPayload
         data: result.data
     })
 })
+
 const deleteScheduleFromDB = catchAsync(async (req: Request, res: Response) => {
     const result = await ScheduleService.deleteScheduleFromDB(req.params.id);
 

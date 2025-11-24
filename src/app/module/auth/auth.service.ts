@@ -64,8 +64,17 @@ const refreshToken = async (token: string) => {
         config.jwt.access_token_expires as string
     );
 
+    const refreshToken = jwtHelper.generateToken({
+        email: userData.email,
+        role: userData.role
+    },
+        config.jwt.refresh_token_secret as Secret,
+        config.jwt.refresh_token_expires as string
+    );
+
     return {
         accessToken,
+        refreshToken,
         needPasswordChange: userData.needPasswordChange
     };
 
@@ -149,7 +158,9 @@ const forgotPassword = async (payload: { email: string }) => {
     )
 };
 
-const resetPassword = async (token: string, payload: { id: string, newPassword: string }) => {
+const resetPassword = async (token: string, payload: { id: string, password: string }) => {
+
+    console.log({ token, payload });
 
     const userData = await prisma.user.findUniqueOrThrow({
         where: {
@@ -165,7 +176,7 @@ const resetPassword = async (token: string, payload: { id: string, newPassword: 
     }
 
     // hash password
-    const password = await bcrypt.hash(payload.newPassword, Number(config.salt_round));
+    const password = await bcrypt.hash(payload.password, Number(config.salt_round));
 
     // update into database
     const res = await prisma.user.update({
@@ -173,32 +184,11 @@ const resetPassword = async (token: string, payload: { id: string, newPassword: 
             id: payload.id
         },
         data: {
-            password
+            password,
+            needPasswordChange: false
         }
     })
 };
-
-// const getMe = async (session: any) => {
-//     const accessToken = session.accessToken
-//     const decodedData = jwtHelper.verifyToken(accessToken, config.jwt.access_token_secret);
-
-//     const userData = await prisma.user.findUniqueOrThrow({
-//         where: {
-//             email: decodedData.email,
-//             status: UserStatus.ACTIVE
-//         }
-//     });
-
-//     const { id, email, role, needPasswordChange, status } = userData;
-
-//     return {
-//         id,
-//         email,
-//         role,
-//         needPasswordChange,
-//         status
-//     }
-// }
 
 const getMe = async (user: any) => {
     const accessToken = user.accessToken;

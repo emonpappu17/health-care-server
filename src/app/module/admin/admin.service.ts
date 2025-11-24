@@ -20,7 +20,7 @@ const getAllFromDB = async (filters: any, options: IOptions) => {
         })
     }
 
-    console.log('Object.keys(filterData)==>', Object.keys(filterData));
+    // console.log('Object.keys(filterData)==>', Object.keys(filterData));
 
     if (Object.keys(filterData).length > 0) {
         andConditions.push({

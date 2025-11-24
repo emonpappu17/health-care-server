@@ -6,70 +6,6 @@ import { patientSearchableFields } from "./patient.constant";
 import { prisma } from "../../shared/prisma";
 import { IPaginationOptions } from "../../types/pagination";
 
-
-// const getAllFromDB = async (
-//     filters: IPatientFilterRequest,
-//     options: IOptions,
-// ) => {
-//     const { limit, page, skip } = paginationHelper.calculatePagination(options);
-//     const { searchTerm, ...filterData } = filters;
-
-//     const andConditions = [];
-
-//     if (searchTerm) {
-//         andConditions.push({
-//             OR: patientSearchableFields.map(field => ({
-//                 [field]: {
-//                     contains: searchTerm,
-//                     mode: 'insensitive',
-//                 },
-//             })),
-//         });
-//     }
-
-//     if (Object.keys(filterData).length > 0) {
-//         andConditions.push({
-//             AND: Object.keys(filterData).map(key => {
-//                 return {
-//                     [key]: {
-//                         equals: (filterData as any)[key],
-//                     },
-//                 };
-//             }),
-//         });
-//     }
-//     andConditions.push({
-//         isDeleted: false,
-//     });
-
-//     const whereConditions: Prisma.PatientWhereInput =
-//         andConditions.length > 0 ? { AND: andConditions } : {};
-
-//     const result = await prisma.patient.findMany({
-//         where: whereConditions,
-//         skip,
-//         take: limit,
-//         orderBy:
-//             options.sortBy && options.sortOrder
-//                 ? { [options.sortBy]: options.sortOrder }
-//                 : {
-//                     createdAt: 'desc',
-//                 }
-//     });
-//     const total = await prisma.patient.count({
-//         where: whereConditions,
-//     });
-
-//     return {
-//         meta: {
-//             total,
-//             page,
-//             limit,
-//         },
-//         data: result,
-//     };
-// };
-
 const getAllFromDB = async (
     filters: IPatientFilterRequest,
     options: IPaginationOptions,
@@ -96,16 +32,19 @@ const getAllFromDB = async (
             AND: Object.keys(filterData).map((key) => {
                 return {
                     [key]: {
-                        equals: (filterData as any)[key],
+                        // equals: (filterData as any)[key],
+                        contains: (filterData as any)[key],
+                        mode: "insensitive",
+                        // equals: (filterData as any)[key],
                     },
                 };
             }),
         });
     }
 
-    andConditions.push({
-        isDeleted: false,
-    });
+    // andConditions.push({
+    //     isDeleted: false,
+    // });
 
     const whereConditions: Prisma.PatientWhereInput =
         andConditions.length > 0 ? { AND: andConditions } : {};
@@ -113,11 +52,11 @@ const getAllFromDB = async (
     // Conditional include based on parameter
     const includeClause = includeHealthData
         ? {
-            medicalReport: true,
+            medicalReports: true,
             patientHealthData: true,
         }
         : {
-            medicalReport: {
+            medicalReports: {
                 select: {
                     id: true,
                     reportName: true,
