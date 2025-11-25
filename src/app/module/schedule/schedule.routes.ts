@@ -6,21 +6,27 @@ import { UserRole } from "@prisma/client";
 const router = Router();
 
 router.get(
-    "/",
-    auth(UserRole.DOCTOR, UserRole.ADMIN),
-    ScheduleController.schedulesForDoctor
-)
+    '/',
+    auth(UserRole.DOCTOR, UserRole.ADMIN,),
+    ScheduleController.getAllFromDB
+);
+
+router.get(
+    '/:id',
+    auth(UserRole.ADMIN, UserRole.DOCTOR, UserRole.PATIENT),
+    ScheduleController.getByIdFromDB
+);
 
 router.post(
-    "/",
-    // auth(UserRole.ADMIN),
+    '/',
+    auth(UserRole.ADMIN),
     ScheduleController.insertIntoDB
-)
+);
 
 router.delete(
-    "/:id",
+    '/:id',
     auth(UserRole.ADMIN),
-    ScheduleController.deleteScheduleFromDB
-)
+    ScheduleController.deleteFromDB
+);
 
-export const scheduleRoutes = router;
+export const ScheduleRoutes = router;

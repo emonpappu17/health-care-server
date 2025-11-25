@@ -1,7 +1,7 @@
 import express from 'express';
 import { userRoutes } from '../module/user/user.routes';
 import { authRoutes } from '../module/auth/auth.routes';
-import { scheduleRoutes } from '../module/schedule/schedule.routes';
+import { ScheduleRoutes } from '../module/schedule/schedule.routes';
 import { doctorScheduleRoutes } from '../module/doctorSchedule/doctorSchedule.routes';
 import { SpecialtiesRoutes } from '../module/specialities/specialities.routes';
 import { DoctorRoutes } from '../module/doctor/doctor.route';
@@ -26,7 +26,7 @@ const moduleRoutes = [
     },
     {
         path: '/schedule',
-        route: scheduleRoutes
+        route: ScheduleRoutes
     },
     {
         path: '/doctor-schedule',
