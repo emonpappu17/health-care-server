@@ -131,15 +131,34 @@ const getMyAppointment = async (user: IJWTPayload, filters: any, options: IOptio
 
     const whereConditions: Prisma.AppointmentWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
+    // const result = await prisma.appointment.findMany({
+    //     where: whereConditions,
+    //     skip,
+    //     take: limit,
+    //     orderBy: {
+    //         [sortBy]: sortOrder
+    //     },
+    //     include: user.role === UserRole.DOCTOR ?
+    //         { patient: true } : { doctor: true }
+    // });
+
     const result = await prisma.appointment.findMany({
         where: whereConditions,
         skip,
         take: limit,
-        orderBy: {
-            [sortBy]: sortOrder
-        },
-        include: user.role === UserRole.DOCTOR ?
-            { patient: true } : { doctor: true }
+        orderBy: options.sortBy && options.sortOrder
+            ? { [options.sortBy]: options.sortOrder }
+            : { createdAt: 'desc' },
+        include: user?.role === UserRole.PATIENT
+            ? { doctor: true, schedule: true, review: true, prescription: true }
+            : {
+                patient: {
+                    include: { medicalReports: true, patientHealthData: true },
+                },
+                schedule: true,
+                prescription: true,
+                review: true,
+            }
     });
 
     const total = await prisma.appointment.count({

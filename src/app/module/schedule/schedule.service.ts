@@ -157,7 +157,12 @@ const getAllFromDB = async (
         }
     });
 
+    // console.log({ doctorSchedules });
+
     const doctorScheduleIds = doctorSchedules.map(schedule => schedule.scheduleId);
+
+
+    // console.log({ doctorScheduleIds });
 
     const result = await prisma.schedule.findMany({
         where: {
