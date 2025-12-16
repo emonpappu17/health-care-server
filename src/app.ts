@@ -28,14 +28,14 @@ app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }));
 
 
-cron.schedule('* * * * *', () => {
-    try {
-        console.log("Node cron called at:", new Date());
-        AppointmentService.cancelUnpaidAppointments()
-    } catch (error) {
-        console.log(error);
-    }
-});
+// cron.schedule('* * * * *', () => {
+//     try {
+//         console.log("Node cron called at:", new Date());
+//         AppointmentService.cancelUnpaidAppointments()
+//     } catch (error) {
+//         console.log(error);
+//     }
+// });
 
 app.use("/api/v1", router);
 

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync";
-import { IJWTPayload } from "../../types/common";
+import { IAuthUser, IJWTPayload } from "../../types/common";
 import sendResponse from "../../shared/sendResponse";
 import { AppointmentService } from "./appointment.service";
 import pick from "../../helper/pick";
@@ -61,9 +61,24 @@ const getAllFromDB = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const initiatePayment = catchAsync(async (req: Request & { user?: IAuthUser }, res: Response) => {
+    const user = req.user;
+    const { id } = req.params;
+
+    const result = await AppointmentService.initiatePaymentForAppointment(id, user as IAuthUser);
+
+    sendResponse(res, {
+        statusCode: 200,
+        success: true,
+        message: "Payment session created successfully",
+        data: result
+    })
+});
+
 export const AppointmentController = {
     createAppointment,
     getMyAppointment,
     updateAppointmentStatus,
-    getAllFromDB
+    getAllFromDB,
+    initiatePayment
 }

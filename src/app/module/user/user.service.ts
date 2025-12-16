@@ -365,6 +365,7 @@ const updateMyProfile = async (user: IJWTPayload, req: Request) => {
     });
 
     const file = req.file;
+    console.log({ file });
     if (file) {
         const uploadToCloudinary = await fileUploader.uploadToCloudinary(file);
         req.body.profilePhoto = uploadToCloudinary?.secure_url;
