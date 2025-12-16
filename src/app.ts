@@ -1,13 +1,12 @@
+import cookieParser from "cookie-parser";
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import notFound from './app/middlewares/notFound';
-import config from './config';
 import router from './app/routes';
-import cookieParser from "cookie-parser"
+import config from './config';
+// import { PaymentController } from './app/module/payment/payment.controller';
 import { PaymentController } from './app/module/payment/payment.controller';
-import cron from 'node-cron';
-import { AppointmentService } from './app/module/appointment/appointment.service';
 
 const app: Application = express();
 

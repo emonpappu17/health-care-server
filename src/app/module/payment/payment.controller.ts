@@ -1,44 +1,77 @@
+// import { Request, Response } from "express";
+// import catchAsync from "../../shared/catchAsync";
+// import sendResponse from "../../shared/sendResponse";
+// import { PaymentService } from "./payment.service";
+// import Stripe from "stripe";
+// import { stripe } from "../../helper/stripe";
+// import config from "../../../config";
+
+// const handleStripeWebhookEvent = catchAsync(async (req: Request, res: Response) => {
+//     // const user = req.user;
+
+//     const sig = req.headers["stripe-signature"];
+//     const webhookSecret = config.stripe_webhook_secret as string;
+//     // const webhookSecret = "whsec_a2d33d441d56d2304d111c6da842e3dd4ed19e9217384503bea41368da49a7fe"
+
+//     if (!sig) {
+//         return res.status(400).send("Missing Stripe signature header");
+//     }
+
+//     let event: Stripe.Event;
+
+//     try {
+//         event = stripe.webhooks.constructEvent(
+//             req.body,
+//             sig,
+//             // process.env.STRIPE_WEBHOOK_SECRET!
+//             webhookSecret
+//         );
+//     } catch (err: any) {
+//         console.error("❌ Invalid Stripe signature:", err.message);
+//         return res.status(400).send(`Webhook Error: ${err.message}`);
+//     }
+
+//     const result = await PaymentService.handleStripeWebhookEvent(event);
+
+//     sendResponse(res, {
+//         statusCode: 201,
+//         success: true,
+//         message: "Webhook request send successfully!",
+//         data: result
+//     })
+// });
+
+// export const PaymentController = {
+//     handleStripeWebhookEvent
+// }
+
+
+
 import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync";
-import sendResponse from "../../shared/sendResponse";
 import { PaymentService } from "./payment.service";
-import Stripe from "stripe";
+import sendResponse from "../../shared/sendResponse";
 import { stripe } from "../../helper/stripe";
-import config from "../../../config";
 
 const handleStripeWebhookEvent = catchAsync(async (req: Request, res: Response) => {
-    // const user = req.user;
+    const sig = req.headers["stripe-signature"] as string;
+    const webhookSecret = "whsec_a2d33d441d56d2304d111c6da842e3dd4ed19e9217384503bea41368da49a7fe"
 
-    const sig = req.headers["stripe-signature"];
-    const webhookSecret = config.stripe_webhook_secret as string;
-    // const webhookSecret = "whsec_a2d33d441d56d2304d111c6da842e3dd4ed19e9217384503bea41368da49a7fe"
-
-    if (!sig) {
-        return res.status(400).send("Missing Stripe signature header");
-    }
-
-    let event: Stripe.Event;
-
+    let event;
     try {
-        event = stripe.webhooks.constructEvent(
-            req.body,
-            sig,
-            // process.env.STRIPE_WEBHOOK_SECRET!
-            webhookSecret
-        );
+        event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
     } catch (err: any) {
-        console.error("❌ Invalid Stripe signature:", err.message);
+        console.error("⚠️ Webhook signature verification failed:", err.message);
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
-
     const result = await PaymentService.handleStripeWebhookEvent(event);
 
     sendResponse(res, {
-        statusCode: 201,
+        statusCode: 200,
         success: true,
-        message: "Webhook request send successfully!",
-        data: result
-    })
+        message: 'Webhook req send successfully',
+        data: result,
+    });
 });
 
 export const PaymentController = {
